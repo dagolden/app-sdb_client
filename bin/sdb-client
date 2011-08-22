@@ -1,0 +1,25 @@
+#!perl
+use v5.10.0;
+use strict;
+use warnings;
+# PODNAME: sdb-client
+# ABSTRACT: Amazon SimpleDB command-line client
+# VERSION
+
+use App::sdb_client;
+my $app = App::sdb_client->new;
+exit $app->run;
+
+__END__
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 OPTIONS
+
+=head1 CONFIGURATION FILE
+
+=cut
+
+# vim: ts=2 sts=2 sw=2 et:

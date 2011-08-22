@@ -1,39 +1,48 @@
-use 5.008001;
+#!perl
+use 5.010;
 use strict;
 use warnings;
-
+use autodie;
 package App::sdb_client;
+# ABSTRACT: Guts of Amazon SimpleDB command-line client
 # VERSION
 
-# Dependencies
-use autodie 2.00;
+use Net::Amazon::Config;
+use SimpleDB::Client;
+
+# XXX fix all this boilerplate
+#
+#my $sdb = SimpleDB::Client->new(secret_key=>'abc', access_key=>'123');
+#
+## create a domain
+#my $hashref = $sdb->send_request('CreateDomain', {DomainName => 'my_things'});
+#
+## insert attributes
+#my $hashref = $sdb->send_request('PutAttributes', {
+#    DomainName             => 'my_things',
+#    ItemName               => 'car',
+#    'Attribute.1.Name'     => 'color',
+#    'Attribute.1.Value'    => 'red',
+#    'Attribute.1.Replace'  => 'true',
+#});
+#
+## get attributes
+#my $hashref = $sdb->send_request('GetAttributes', {
+#    DomainName             => 'my_things',
+#    ItemName               => 'car',
+#});
+#
+## search attributes
+#my $hashref = $sdb->send_request('Select', {
+#    SelectExpression       => q{select * from my_things where color = 'red'},
 
 1;
 
-# ABSTRACT: No abstract given for App::sdb_client
+__END__
 
-=for Pod::Coverage method_names_here
+=head1 SYNOPSIS
 
-=begin wikidoc
-
-= SYNOPSIS
-
-  use App::sdb_client;
-
-= DESCRIPTION
-
-This module might be cool, but you'd never know it from the lack
-of documentation.
-
-= USAGE
-
-Good luck!
-
-= SEE ALSO
-
-Maybe other modules do related things.
-
-=end wikidoc
+=head1 DESCRIPTION
 
 =cut
 
