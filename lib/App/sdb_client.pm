@@ -37,8 +37,7 @@ sub run {
 
 sub dispatch {
   my ($self, $command, @args) = @_;
-  (my $method = $command) =~ s{-}{_}g;
-  $method = "cmd_$command";
+  (my $method = "cmd_$command") =~ s{-}{_}g;
   if ( $self->can($method) ) {
     $self->$method(@args);
   }
