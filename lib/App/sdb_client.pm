@@ -114,6 +114,7 @@ run
 sdb
 cmd_help
 cmd_list_domains
+cmd_count_domain
 
 =head1 SYNOPSIS
 

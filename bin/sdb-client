@@ -20,6 +20,7 @@ __END__
     --profile|-p        Net::Amazon::Config profile name
 
   Available commands:
+    count-domain DOMAIN
     list-domains
     help
 
@@ -37,9 +38,13 @@ provided, will use the default Net::Amazon::Config profile.
 
 =head1 COMMANDS
 
+=head2 count-domain DOMAIN [DOMAIN ...]
+
+Provides a count of records in the given domain(s).
+
 =head2 list-domains
 
-Provides a list of
+Provides a list of SimpleDB domains under the configured profile.
 
 =head2 help
 
