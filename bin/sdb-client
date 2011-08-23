@@ -14,9 +14,36 @@ __END__
 
 =head1 SYNOPSIS
 
+  sdb-client [OPTIONS] <command> [COMMMAND OPTIONS]
+
+  Options:
+    --profile|-p        Net::Amazon::Config profile name
+
+  Available commands:
+    list-domains
+    help
+
 =head1 DESCRIPTION
 
+This is a simple command line client for Amazon SimpleDB with only
+partial functionality to date.
+
 =head1 OPTIONS
+
+=head2 --profile|-p
+
+Select a profile name as defined by L<Net::Amazon::Config>.  If not
+provided, will use the default Net::Amazon::Config profile.
+
+=head1 COMMANDS
+
+=head2 list-domains
+
+Provides a list of
+
+=head2 help
+
+Print synopsis.
 
 =head1 CONFIGURATION FILE
 

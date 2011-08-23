@@ -7,42 +7,106 @@ package App::sdb_client;
 # ABSTRACT: Guts of Amazon SimpleDB command-line client
 # VERSION
 
+use Data::Stream::Bulk::Callback;
+use Data::Dumper;
+use Getopt::Lucid ':all';
 use Net::Amazon::Config;
 use SimpleDB::Client;
+use Object::Tiny qw/opt sdb/; 
+use Try::Tiny;
 
-# XXX fix all this boilerplate
-#
-#my $sdb = SimpleDB::Client->new(secret_key=>'abc', access_key=>'123');
-#
-## create a domain
-#my $hashref = $sdb->send_request('CreateDomain', {DomainName => 'my_things'});
-#
-## insert attributes
-#my $hashref = $sdb->send_request('PutAttributes', {
-#    DomainName             => 'my_things',
-#    ItemName               => 'car',
-#    'Attribute.1.Name'     => 'color',
-#    'Attribute.1.Value'    => 'red',
-#    'Attribute.1.Replace'  => 'true',
-#});
-#
-## get attributes
-#my $hashref = $sdb->send_request('GetAttributes', {
-#    DomainName             => 'my_things',
-#    ItemName               => 'car',
-#});
-#
-## search attributes
-#my $hashref = $sdb->send_request('Select', {
-#    SelectExpression       => q{select * from my_things where color = 'red'},
+my $options = [
+  Param("profile|p"),
+];
+
+sub run {
+  my $self = shift;
+  $self->{opt} ||= Getopt::Lucid->getopt( $options );
+  my $config = Net::Amazon::Config->new;
+  my $profile = $config->get_profile( $self->opt->get_profile );
+  $self->{sdb} ||= SimpleDB::Client->new(
+    secret_key=>$profile->secret_access_key,
+    access_key=>$profile->access_key_id,
+  );
+
+  my $command = shift @ARGV || "help";
+  return try { $self->dispatch($command, @ARGV); 0 }
+    catch { warn "$_\n"; 1 };
+}
+
+sub dispatch {
+  my ($self, $command, @args) = @_;
+  (my $method = $command) =~ s{-}{_}g;
+  $method = "cmd_$command";
+  if ( $self->can($method) ) {
+    $self->$method(@args);
+  }
+  else {
+    die "Command '$command' not supported.\n";
+  }
+}
+
+sub cmd_help {
+  require Pod::Usage;
+  Pod::Usage::pod2usage();
+}
+
+sub cmd_list_domains {
+  my ($self, @args) = @_;
+  my $bulk = $self->_bulk_request('ListDomainsResult', ['ListDomains']);
+  until ( $bulk->is_done ) {
+    foreach my $item ( $bulk->items ) {
+      say for @{$item->{DomainName}};
+    }
+  }
+}
+
+sub _bulk_request {
+  my ($self, $response_key, $request) = @_;
+  return Data::Stream::Bulk::Callback->new(
+    callback => sub {
+      state ($next_token, $done);
+      return if $done;
+      my $response = $self->sdb->send_request(
+        @$request, ($next_token ? (NextToken => $next_token) : () )
+      );
+      $next_token = $response->{NextToken};
+      if ( $response->{$response_key} ) {
+        $done = ! ( defined $next_token && length $next_token );
+        return [ $response->{$response_key} ];
+      }
+      elsif ( $next_token ) {
+        # no response yet, but told there is more?
+        return $self->get_more;
+      }
+      else {
+        return;
+      }
+    }
+  );
+}
 
 1;
 
 __END__
 
+=for Pod::Coverage
+dispatch
+opt
+run
+sdb
+cmd_help
+cmd_list_domains
+
 =head1 SYNOPSIS
 
+  use App::sdb_client;
+  my $app = App::sdb_client->new;
+  exit $app->run;
+
 =head1 DESCRIPTION
+
+  Guts of the L<sdb-client> program.  No user-serviceable parts inside.
 
 =cut
 
