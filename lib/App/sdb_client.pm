@@ -14,6 +14,7 @@ use Net::Amazon::Config;
 use SimpleDB::Client;
 use Object::Tiny qw/opt sdb/; 
 use Try::Tiny;
+use List::AllUtils qw/uniq/;
 
 my $options = [
   Param("profile|p"),
@@ -56,7 +57,23 @@ sub cmd_list_domains {
   my $bulk = $self->_bulk_request('ListDomainsResult', ['ListDomains']);
   until ( $bulk->is_done ) {
     foreach my $item ( $bulk->items ) {
+      $item->{DomainName} = [$item->{DomainName}] unless ref $item->{DomainName};
       say for @{$item->{DomainName}};
+    }
+  }
+}
+
+sub cmd_count_domain {
+  my ($self, @args) = @_;
+  for my $domain ( uniq @args ) {
+    my $count;
+    my $bulk = $self->_bulk_request('SelectResult', 
+      [ 'Select', {'SelectExpression' => "select count(*) from $domain"} ]
+    );
+    until ( $bulk->is_done ) {
+      foreach my $item ( $bulk->items ) {
+        say "$domain $item->{Item}[0]{Attribute}{Value}";
+      }
     }
   }
 }
