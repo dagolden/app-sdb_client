@@ -31,6 +31,10 @@ partial functionality to date.
 
 =head1 OPTIONS
 
+=head2 --force|-f
+
+Don't confirm dangerous actions.
+
 =head2 --profile|-p
 
 Select a profile name as defined by L<Net::Amazon::Config>.  If not
@@ -41,6 +45,11 @@ provided, will use the default Net::Amazon::Config profile.
 =head2 count-domain DOMAIN [DOMAIN ...]
 
 Provides a count of records in the given domain(s).
+
+=head2 delete-domain DOMAIN [DOMAIN ...]
+
+Deletes the given domain(s). Will prompt to confirm unless C<force> is
+in effect.
 
 =head2 list-domains
 

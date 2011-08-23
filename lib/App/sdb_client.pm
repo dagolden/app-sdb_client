@@ -11,6 +11,7 @@ use Data::Stream::Bulk::Callback;
 use Data::Dumper;
 use Getopt::Lucid ':all';
 use Net::Amazon::Config;
+use IO::Interactive qw/is_interactive/;
 use SimpleDB::Client;
 use Object::Tiny qw/opt sdb/; 
 use Try::Tiny;
@@ -18,6 +19,7 @@ use List::AllUtils qw/uniq/;
 
 my $options = [
   Param("profile|p"),
+  Switch("force|f"),
 ];
 
 sub run {
@@ -67,12 +69,22 @@ sub cmd_count_domain {
   for my $domain ( uniq @args ) {
     my $count;
     my $bulk = $self->_bulk_request('SelectResult', 
-      [ 'Select', {'SelectExpression' => "select count(*) from $domain"} ]
+      [ 'Select', {'SelectExpression' => "select count(*) from `$domain`"} ]
     );
     until ( $bulk->is_done ) {
       foreach my $item ( $bulk->items ) {
         say "$domain $item->{Item}[0]{Attribute}{Value}";
       }
+    }
+  }
+}
+
+sub cmd_delete_domain {
+  my ($self, @domains) = @_;
+  for my $domain ( uniq @domains ) {
+    if ($self->opt->get_force || $self->_prompt_yn("Are you sure you want to delete $domain?") ) {
+      $self->sdb->send_request('DeleteDomain', {DomainName => $domain});
+      say "Deleted $domain";
     }
   }
 }
@@ -102,18 +114,36 @@ sub _bulk_request {
   );
 }
 
+sub _prompt {
+  my ($self, $message, $default) = @_;
+  return $default unless is_interactive();
+  local $|=1;
+  print "$message [$default]: ";
+  my $response = <STDIN>;
+  chomp $response;
+  return $response;
+}
+
+sub _prompt_yn {
+  my ($self, $message, $default) = @_;
+  $default ||= "no";
+  $message .= " (yes/no)";
+  return $self->_prompt($message, $default) =~ m{^y(?:es)?$};
+}
+
 1;
 
 __END__
 
 =for Pod::Coverage
+cmd_count_domain
+cmd_delete_domain
+cmd_help
+cmd_list_domains
 dispatch
 opt
 run
 sdb
-cmd_help
-cmd_list_domains
-cmd_count_domain
 
 =head1 SYNOPSIS
 
